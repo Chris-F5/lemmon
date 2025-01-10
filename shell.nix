@@ -10,6 +10,8 @@ pkgs.mkShellNoCC {
     pkgs.python312Packages.scipy
     pkgs.python312Packages.pyopengl # Note I also needed https://github.com/nix-community/nixGL
     pkgs.python312Packages.pyopengl-accelerate
+    pkgs.python312Packages.pymupdf
+    pkgs.python312Packages.pillow
 
     # lsp
     pkgs.python312Packages.python-lsp-server
