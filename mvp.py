@@ -23,7 +23,9 @@ def display_callback():
     GL.glClearColor(0.0, 0.0, 0.2, 1.0)
     GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
-    pdf.display()
+    proj = np.identity(4, dtype=np.float32)
+    proj[0][0] = proj[1][1] = 3e-3
+    pdf.display(proj)
 
     GLUT.glutSwapBuffers()
 
@@ -37,7 +39,16 @@ class PDFPane:
             PDFPane.gen_vao()
         if PDFPane.shader_program == None:
             PDFPane.gen_shader_program()
-        self.texture = self.gen_pdf_texture('example.pdf', 0)
+        self.gen_pdf_texture('example.pdf', 0, 2)
+        self.model = np.array([
+            [self.page_width, 0.0,              0.0, 0.0],
+            [0.0,             self.page_height, 0.0, 0.0],
+            [0.0,             0.0,              1.0, 0.0],
+            [0.0,             0.0,              0.0, 1.0],
+        ], dtype=np.float32)
+        self.view = np.identity(4, dtype=np.float32)
+        self.view[0, 3] = -self.page_width//2
+        self.view[1, 3] = -(self.page_height*2)//3
 
     @staticmethod
     def gen_vao():
@@ -66,35 +77,44 @@ class PDFPane:
             vert_src = f.read()
         with open('pdf.frag') as f:
             frag_src = f.read()
-        PDFPane.shader_program = GL.shaders.compileProgram(
-            GL.shaders.compileShader(vert_src, GL.GL_VERTEX_SHADER),
-            GL.shaders.compileShader(frag_src, GL.GL_FRAGMENT_SHADER),
+        vert_shader = GL.shaders.compileShader(vert_src, GL.GL_VERTEX_SHADER)
+        frag_shader = GL.shaders.compileShader(frag_src, GL.GL_FRAGMENT_SHADER)
+        PDFPane.shader_program = GL.shaders.compileProgram(vert_shader, frag_shader)
+        PDFPane.transform_uniform_location = GL.glGetUniformLocation(
+            PDFPane.shader_program, "transform"
         )
 
-    def gen_pdf_texture(self, pdf_fname, page_no):
+    def gen_pdf_texture(self, pdf_fname, page_no, resolution=1.0):
         doc = fitz.open(pdf_fname)
         page = doc.load_page(page_no)
-        pixmap = page.get_pixmap()
+        matrix = fitz.Matrix(resolution, resolution)
+        pixmap = page.get_pixmap(matrix=matrix)
         assert pixmap.n == 3
         img = PIL.Image.frombytes("RGB", [pixmap.width, pixmap.height], pixmap.samples)
         img = img.transpose(PIL.Image.Transpose.FLIP_TOP_BOTTOM)
-        img_array = np.array(img, dtype=np.uint8)
+        img_array = np.array(img.convert("RGBA"), dtype=np.uint8)
+        self.raw_width = img.width
+        self.raw_height = img.height
+        self.page_width = page.bound().width
+        self.page_height = page.bound().height
 
-        texture = GL.glGenTextures(1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, texture)
+        self.texture = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture)
         GL.glTexImage2D(
-            GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, pixmap.width, pixmap.height, 0,
-            GL.GL_RGB, GL.GL_UNSIGNED_BYTE, img_array
+            GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, img.width, img.height, 0,
+            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, img_array
         )
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
         doc.close()
-        return texture
 
-    def display(self):
+    def display(self, projection):
         GL.glUseProgram(PDFPane.shader_program)
-        #GL.glActivateTexture(GL.GL_TEXTURE0)
+        # GL.glActivateTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture)
+        transform = projection @ self.view @ self.model
+        assert transform.dtype==np.float32
+        GL.glUniformMatrix4fv(PDFPane.transform_uniform_location, 1, True, transform)
         GL.glBindVertexArray(PDFPane.vao)
         GL.glDrawArrays(GL.GL_TRIANGLE_FAN, 0, 4)
 
