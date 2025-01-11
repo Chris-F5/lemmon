@@ -12,6 +12,7 @@ pkgs.mkShellNoCC {
     pkgs.python312Packages.pyopengl-accelerate
     pkgs.python312Packages.pymupdf
     pkgs.python312Packages.pillow
+    pkgs.python312Packages.pyglet
 
     # lsp
     pkgs.python312Packages.python-lsp-server
