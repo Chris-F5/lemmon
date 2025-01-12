@@ -13,6 +13,7 @@ pkgs.mkShellNoCC {
     pkgs.python312Packages.pymupdf
     pkgs.python312Packages.pillow
 
+    pkgs.xorg.libX11
     pkg-config
 
     # lsp
