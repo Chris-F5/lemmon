@@ -13,6 +13,8 @@ pkgs.mkShellNoCC {
     pkgs.python312Packages.pymupdf
     pkgs.python312Packages.pillow
 
+    gcc
+    pkgs.libGL
     pkgs.xorg.libX11
     pkg-config
 
@@ -21,5 +23,7 @@ pkgs.mkShellNoCC {
     pkgs.python312Packages.pylsp-rope
     pkgs.python312Packages.pyflakes
     pkgs.python312Packages.pycodestyle
+    pkgs.llvmPackages_14.clang-tools
+    pkgs.bear
   ];
 }
