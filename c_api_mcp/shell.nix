@@ -16,6 +16,7 @@ pkgs.mkShellNoCC {
     gcc
     pkgs.libGL
     pkgs.xorg.libX11
+    pkgs.xorg.libXi
     pkg-config
 
     # lsp
