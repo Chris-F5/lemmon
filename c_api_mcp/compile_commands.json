@@ -1,0 +1,16 @@
+[
+  {
+    "arguments": [
+      "/nix/store/rdc1jnyw74mwr2gszqc5zwi433zxs089-gcc-wrapper-13.2.0/bin/gcc",
+      "-c",
+      "-Wall",
+      "-fPIC",
+      "-I/nix/store/4p4afzswgmdsyxykablikjaqws3hmbj3-python3-3.12.7/include/python3.12",
+      "-I/nix/store/gswyxg4h71hs0bgvjc1qbp1ah1vqvfff-libX11-1.8.9-dev/include",
+      "-I/nix/store/zqgg0s5jdy1qi4cwmp30gdnvk2yw7sby-xorgproto-2024.1/include",
+      "lemmon_capi.c"
+    ],
+    "directory": "/home/chris/r/lemmon/c_api_mcp",
+    "file": "/home/chris/r/lemmon/c_api_mcp/lemmon_capi.c"
+  }
+]

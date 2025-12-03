@@ -1,6 +1,8 @@
+#include "X11/X.h"
 #include "X11/extensions/XI2.h"
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput2.h>
+#include <X11/Xatom.h>
 #include <GL/glx.h>
 //#include <GL/gl.h>
 
@@ -82,7 +84,7 @@ list_devices(void)
 static PyObject*
 init_window(PyObject *self, PyObject *args)
 {
-    GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+    GLint att[] = { GLX_RGBA, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
     XSetWindowAttributes swa;
     char *title;
 
@@ -95,23 +97,45 @@ init_window(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    XVisualInfo visualinfo ;
+    XMatchVisualInfo(dpy, DefaultScreen(dpy), 32, TrueColor, &visualinfo);
+    vi = &visualinfo;
+    /*
     vi = glXChooseVisual(dpy, 0, att);
     if (vi == NULL) {
         PyErr_SetString(PyExc_Exception, "glXChooseVisual failed");
         return NULL;
     }
+    */
 
     cmap = XCreateColormap(dpy, DefaultRootWindow(dpy), vi->visual, AllocNone);
 
     memset(&swa, 0, sizeof(swa));
     swa.colormap = cmap;
     swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask;
+    swa.override_redirect = True;
+   swa.background_pixmap = None ;
+   swa.border_pixel      = 0 ;
 
     w = XCreateWindow(
         dpy, DefaultRootWindow(dpy),
-        0, 0, 600, 600,
-        0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa
+        0, 0, XDisplayWidth(dpy, DefaultScreen(dpy)), XDisplayHeight(dpy, DefaultScreen(dpy)),
+        0, vi->depth, InputOutput, vi->visual, CWOverrideRedirect | CWColormap | CWEventMask | CWBorderPixel | CWBackPixmap, &swa
     );
+
+     /*
+    unsigned long opacity = 255 * (0xFFFFFFFFu / 255);
+    XChangeProperty(dpy, w,
+        XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False), XA_CARDINAL, 32,
+        PropModeReplace, (unsigned char *) &opacity, 1L);
+
+    XChangeProperty(dpy, w,
+        XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False), XA_ATOM, 32,
+        PropModeReplace,
+        (unsigned char *) &(Atom) { XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False) },
+        1L);
+    */
+
     glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
     glXMakeCurrent(dpy, w, glc);
 

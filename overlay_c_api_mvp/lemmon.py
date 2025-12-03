@@ -244,8 +244,9 @@ class Main:
 
     def display_callback(self):
         proj = self.get_proj()
-        GL.glClearColor(0.0, 0.0, 0.2, 1.0)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glClearColor(0.0, 0.0, 0.2, 0.5)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT, GL.GL_DEPTH_BUFFER_BIT)
         self.pdf.display(proj)
         self.note.display(proj)
 
@@ -272,6 +273,7 @@ class Main:
         if btn == 2:
             self.last_pan_x = None
             self.last_pan_y = None
+        lemmon_capi.quit_window()
 
     def reshape_callback(self, width, height):
         self.width = width

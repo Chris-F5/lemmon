@@ -19,6 +19,7 @@ def window_reshape_callback(w, h):
 
 def display_callback():
     global pdf
+    print("display")
 
     GL.glClearColor(0.0, 0.0, 0.2, 1.0)
     GL.glClear(GL.GL_COLOR_BUFFER_BIT)
